@@ -1,0 +1,60 @@
+"fizz\n" >
+"buzz\n" >
+"\n"
+20
+1
+
+
+fun fizz <14) while , > end (8> end
+fun buzz <8) while , > end (3> end
+fun lf <2) while , > end > end
+
+
+>
+loop
++>
+3
+<%
+while - end
+<
+if 
+while - end
+<
++> 
+5
+<%
+while - end
+<
+if 
+while - end
+<
+.
+lf
+else 
+while - end
+<
+buzz
+end
+else
+while - end
+<
++>
+5
+<%
+while - end
+< 
+if 
+while - end
+<
+fizz
+else
+while - end
+<
+fizz
+buzz
+end
+end
+< 
+-
+>
+end

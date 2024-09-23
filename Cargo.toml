@@ -1,0 +1,7 @@
+[workspace]
+
+members = [ "turing","turing_core", "turing_definitions"]
+
+[workspace.dependencies]
+turing_core = { path = "turing_core" }
+turing_definitions = { path = "turing_definitions" }
