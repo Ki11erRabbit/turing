@@ -1,18 +1,22 @@
 use std::{cell::RefCell, collections::HashMap};
 use std::rc::Rc;
+use crossterm::event::{read, Event, KeyCode, KeyModifiers};
 use turing_definitions::{ast::{Command, SpannedCommand}, Direction, Number, Tape};
+use std::io::Write;
 
 pub trait InterpreterUtils<'a, T:Number> {
     fn interpret_commands(&'a mut self, command_tape: &'a Vec<SpannedCommand<'a>>);
     fn add_string(&mut self, s: &str);
     fn write_string(&mut self, s: &str);
     fn output_char(&mut self);
+    fn write_char(&mut self, c: char);
 }
 
 struct InterpreterExt<'a, T: Number> {
     add_string: fn(&mut Interpreter<'a, T>, &str),
     write_string: fn(&mut Interpreter<'a, T>, &str),
     output_char: fn(&mut Interpreter<'a, T>),
+    write_char: fn(&mut Interpreter<'a, T>, char),
 }
 
 pub struct Interpreter<'a, T: Number> {
@@ -209,12 +213,35 @@ impl<'a, T: Number> Interpreter<'a, T> {
             Command::OutputNumber => {
                 let tape = self.tape.borrow();
                 print!("{}", tape.get(self.tape_index));
+                std::io::stdout().flush().unwrap();
             }
             Command::OutputChar => {
                 (interpreter_ext.output_char)(self);
+                std::io::stdout().flush().unwrap();
             }
             Command::ReadKey => {
-                todo!()
+                loop {
+                    match read().unwrap() {
+                        Event::Key(event) => {
+                            match event.code {
+                                KeyCode::Enter => {
+                                    (interpreter_ext.write_char)(self, '\n');
+                                    break;
+                                }
+                                KeyCode::Char(c) => {
+                                    if event.modifiers == KeyModifiers::SHIFT {
+                                        (interpreter_ext.write_char)(self, c.to_uppercase().next().unwrap());
+                                    } else {
+                                        (interpreter_ext.write_char)(self, c);
+                                    }
+                                    break;
+                                }
+                                _ => {}
+                            }
+                        }
+                        _ => {}
+                    }
+                }
             }
             Command::Comment => {}
         }
@@ -243,6 +270,7 @@ impl<'a> InterpreterUtils<'a, i64> for Interpreter<'a, i64> {
                 add_string: Interpreter::add_string,
                 write_string: Interpreter::write_string,
                 output_char: Interpreter::output_char,
+                write_char: Interpreter::write_char,
             });
         }
     }
@@ -271,6 +299,19 @@ impl<'a> InterpreterUtils<'a, i64> for Interpreter<'a, i64> {
 
     fn output_char(&mut self) {
         let tape = self.tape.borrow();
-        print!("{}", char::from_u32(tape.get(self.tape_index) as u32).unwrap_or(' '));
+        match char::from_u32(tape.get(self.tape_index) as u32) {
+            Some('\n') => print!("\r\n"),
+            Some(c) => print!("{}", c),
+            None => print!(" "),
+        }
+        std::io::stdout().flush().unwrap();
+    }
+
+    fn write_char(&mut self, c: char) {
+        let mut tape = self.tape.borrow_mut();
+        if !tape.in_bounds(self.tape_index) {
+            tape.grow();
+        }
+        tape.set(self.tape_index, c as i64);
     }
 }

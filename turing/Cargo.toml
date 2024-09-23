@@ -7,3 +7,4 @@ edition = "2021"
 turing_definitions = { workspace = true }
 clap = { version = "4.5.18", features = ["derive"] }
 clap_derive = "4.5.18"
+crossterm = "0.28.1"
