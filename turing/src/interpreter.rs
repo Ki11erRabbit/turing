@@ -1,8 +1,23 @@
+use std::time::Duration;
 use std::{cell::RefCell, collections::HashMap};
 use std::rc::Rc;
-use crossterm::event::{read, Event, KeyCode, KeyModifiers};
+use crossterm::event::{poll, read, Event, KeyCode, KeyModifiers};
 use turing_definitions::{ast::{Command, SpannedCommand}, Direction, Number, Tape};
 use std::io::Write;
+
+fn check_for_ctrl_c() {
+    if poll(Duration::from_millis(5)).unwrap() {
+        match read().unwrap() {
+            Event::Key(event) => {
+                if event.code == KeyCode::Char('c') && event.modifiers == KeyModifiers::CONTROL {
+                    super::shutdown();
+                    std::process::exit(0);
+                }
+            }
+            _ => {}
+        }
+    }
+}
 
 pub trait InterpreterUtils<'a, T:Number> {
     fn interpret_commands(&'a mut self, command_tape: &'a Vec<SpannedCommand<'a>>);
@@ -135,6 +150,7 @@ impl<'a, T: Number> Interpreter<'a, T> {
                     self.command_index = 0;
                     drop(tape);
                     while self.command_index < if_commands.len() {
+                        check_for_ctrl_c();
                         self.interpret_command(&if_commands[self.command_index], interpreter_ext);
                         self.command_index += 1;
                     }
@@ -144,6 +160,7 @@ impl<'a, T: Number> Interpreter<'a, T> {
                     self.command_index = 0;
                     drop(tape);
                     while self.command_index < else_commands.len() {
+                        check_for_ctrl_c();
                         self.interpret_command(&else_commands[self.command_index], interpreter_ext);
                         self.command_index += 1;
                     }
@@ -156,6 +173,7 @@ impl<'a, T: Number> Interpreter<'a, T> {
                     let command_index = self.command_index;
                     self.command_index = 0;
                     while self.command_index < while_commands.len() {
+                        check_for_ctrl_c();
                         self.interpret_command(&while_commands[self.command_index], interpreter_ext);
                     }
                     self.command_index = command_index;
@@ -166,6 +184,7 @@ impl<'a, T: Number> Interpreter<'a, T> {
                     let command_index = self.command_index;
                     self.command_index = 0;
                     while self.command_index < loop_commands.len() {
+                        check_for_ctrl_c();
                         self.interpret_command(&loop_commands[self.command_index], interpreter_ext);
                     }
                     self.command_index = command_index;
@@ -185,6 +204,7 @@ impl<'a, T: Number> Interpreter<'a, T> {
                     let command_index = self.command_index;
                     self.command_index = 0;
                     while self.command_index < self.functions_list[commands].len() {
+                        check_for_ctrl_c();
                         self.interpret_command(&self.functions_list[commands][self.command_index], interpreter_ext);
                         self.command_index += 1;
                     }
@@ -192,20 +212,18 @@ impl<'a, T: Number> Interpreter<'a, T> {
                 }
             }
             Command::GetFunction(name) => {
-                if let Some(commands) = self.functions.get(name) {
-                    let commands = *commands;
-                    let command_index = self.command_index;
-                    self.command_index = 0;
-                    while self.command_index < self.functions_list[commands].len() {
-                        self.interpret_command(&self.functions_list[commands][self.command_index], interpreter_ext);
-                    }
-                    self.command_index = command_index;
+                let index = self.functions.get(name);
+                if let Some(index) = index {
+                    let index = *index;
+                    let mut tape = self.tape.borrow_mut();
+                    tape.set(self.tape_index, T::from(index as i64));
                 }
             }
             Command::CallFunction => {
                 let command_index = self.command_index;
                 self.command_index = 0;
                 while self.command_index < self.functions_list.len() {
+                    check_for_ctrl_c();
                     self.interpret_command(&self.functions_list[self.command_index][self.command_index], interpreter_ext);
                 }
                 self.command_index = command_index;
@@ -231,6 +249,8 @@ impl<'a, T: Number> Interpreter<'a, T> {
                                 KeyCode::Char(c) => {
                                     if event.modifiers == KeyModifiers::SHIFT {
                                         (interpreter_ext.write_char)(self, c.to_uppercase().next().unwrap());
+                                    } else if event.modifiers == KeyModifiers::CONTROL && c == 'c' {
+                                        super::shutdown();
                                     } else {
                                         (interpreter_ext.write_char)(self, c);
                                     }
@@ -265,6 +285,7 @@ impl<'a> Interpreter<'a, i64> {
 impl<'a> InterpreterUtils<'a, i64> for Interpreter<'a, i64> {
     fn interpret_commands(&'a mut self, command_tape: &'a Vec<SpannedCommand<'a>>) {
         while self.command_index < command_tape.len() {
+            check_for_ctrl_c();
             let command = &command_tape[self.command_index];
             self.interpret_command(command, &InterpreterExt {
                 add_string: Interpreter::add_string,

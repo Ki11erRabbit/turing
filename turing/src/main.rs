@@ -35,6 +35,10 @@ fn read_keys(buffer: &mut String) {
                         buffer.pop();
                     }
                     crossterm::event::KeyCode::Char(c) => {
+                        if c == 'c' && event.modifiers == crossterm::event::KeyModifiers::CONTROL {
+                            shutdown();
+                            return;
+                        }
                         print!("{}", c);
                         std::io::stdout().flush().unwrap();
                         buffer.push(c);
@@ -53,6 +57,12 @@ fn read_keys(buffer: &mut String) {
     }
 }
 
+pub fn shutdown() {
+    disable_raw_mode().unwrap();
+    execute!(std::io::stdout(),
+             DisableBracketedPaste,
+    ).unwrap();
+}
 
 fn main() {
 
@@ -91,8 +101,5 @@ fn main() {
     let mut interpreter = Interpreter::new();
     interpreter.interpret_commands(&commands);
 
-    execute!(std::io::stdout(),
-             DisableBracketedPaste,
-    ).unwrap();
-    disable_raw_mode().unwrap();
+    shutdown();
 }
