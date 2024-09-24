@@ -1,0 +1,16 @@
+[9]
+0 1 # position 2
+loop 
+    <+ # add to position 1
+    < < # move to position 0
+    - 
+    if 
+        > # move to position 1
+        +> # add to position 2
+        < < # move to position 0
+        -
+        > > # move to position 2
+    end
+end
+> > 
+.

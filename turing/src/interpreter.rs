@@ -44,6 +44,8 @@ pub struct Interpreter<'a, T: Number> {
 
 impl<'a, T: Number> Interpreter<'a, T> {
     fn interpret_command(&mut self, command: &'a SpannedCommand, interpreter_ext: &InterpreterExt<'a, T>) {
+        println!("{:?}\r", self.tape.borrow());
+        println!("{:?}\r", command.command);
         match &command.command {
             Command::AddInteger(i) => {
                 let mut tape = self.tape.borrow_mut();
@@ -94,14 +96,11 @@ impl<'a, T: Number> Interpreter<'a, T> {
             }
             Command::Increment => {
                 let mut tape = self.tape.borrow_mut();
-                let value = tape.get(self.tape_index);
-                tape.set(self.tape_index, value + T::from(1));
+                tape.increment(self.tape_index);
             }
             Command::Decrement => {
-                println!("{}", self.tape_index);
                 let mut tape = self.tape.borrow_mut();
-                let value = tape.get(self.tape_index);
-                tape.set(self.tape_index, value - T::from(1));
+                tape.decrement(self.tape_index);
             }
             Command::LeftAdd(offset) => {
                 let mut tape = self.tape.borrow_mut();

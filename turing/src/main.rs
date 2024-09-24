@@ -97,8 +97,14 @@ fn main() {
         line
     };
 
-    let commands = turing_definitions::parser::parse(&code);
+    //disable_raw_mode().unwrap();
 
+    let commands = turing_definitions::parser::parse(&code);
+    
+    //println!("{:#?}", commands);
+
+    //enable_raw_mode().unwrap();
+    
     let mut interpreter = Interpreter::new();
     interpreter.interpret_commands(&commands);
 

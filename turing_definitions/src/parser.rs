@@ -6,6 +6,7 @@ use crate::ast::{Command, SpannedCommand};
 struct Lexer<'a> {
     input: &'a str,
     char_indices: std::iter::Peekable<CharIndices<'a>>,
+    end_stack: Vec<()>,
 }
 
 
@@ -14,10 +15,13 @@ impl<'a> Lexer<'a> {
         Lexer {
             input,
             char_indices: input.char_indices().peekable(),
+            end_stack: Vec::new(),
         }
     }
 
     fn parse_if(&mut self) -> (Vec<SpannedCommand<'a>>, Option<Vec<SpannedCommand<'a>>>, usize) {
+        self.end_stack.push(());
+        let stack_len = self.end_stack.len();
         let mut commands = Vec::new();
         let mut else_commands = None;
         let mut end = 0;
@@ -31,8 +35,11 @@ impl<'a> Lexer<'a> {
                             end = command.end;
                             match command.command {
                                 Command::FunctionCall(name) => {
-                                    if name == "end" {
+                                    if name == "end" && self.end_stack.len() == stack_len {
+                                        self.end_stack.pop();
                                         break;
+                                    } else if name != "end" {
+                                        else_commands_vec.push(command);
                                     }
                                 }
                                 _ => else_commands_vec.push(command),
@@ -40,6 +47,11 @@ impl<'a> Lexer<'a> {
                         }
                         else_commands = Some(else_commands_vec);
                         break;
+                    } else if name == "end" && self.end_stack.len() == stack_len {
+                        self.end_stack.pop();
+                        break;
+                    } else if name != "end" {
+                        commands.push(command);
                     }
                 }
                 _ => commands.push(command),
@@ -49,14 +61,19 @@ impl<'a> Lexer<'a> {
     }
 
     fn parse_while(&mut self) -> (Vec<SpannedCommand<'a>>, usize) {
+        self.end_stack.push(());
+        let stack_len = self.end_stack.len();
         let mut commands = Vec::new();
         let mut end = 0;
         while let Some(command) = self.next() {
             end = command.end;
             match command.command {
                 Command::FunctionCall(name) => {
-                    if name == "end" {
+                    if name == "end" && self.end_stack.len() == stack_len {
+                        self.end_stack.pop();
                         break;
+                    } else if name != "end" {
+                        commands.push(command);
                     }
                 }
                 _ => commands.push(command),
@@ -66,14 +83,19 @@ impl<'a> Lexer<'a> {
     }
 
     fn parse_loop(&mut self) -> (Vec<SpannedCommand<'a>>, usize) {
+        self.end_stack.push(());
+        let stack_len = self.end_stack.len();
         let mut commands = Vec::new();
         let mut end = 0;
         while let Some(command) = self.next() {
             end = command.end;
             match command.command {
                 Command::FunctionCall(name) => {
-                    if name == "end" {
+                    if name == "end" && self.end_stack.len() == stack_len{
+                        self.end_stack.pop();
                         break;
+                    } else if name != "end" {
+                        commands.push(command);
                     }
                 }
                 _ => commands.push(command),
@@ -83,6 +105,8 @@ impl<'a> Lexer<'a> {
     }
 
     fn parse_function_definition(&mut self) -> (&'a str, Vec<SpannedCommand<'a>>, usize) {
+        self.end_stack.push(());
+        let stack_len = self.end_stack.len();
         let mut commands = Vec::new();
         let mut end;
         let name = match self.next() {
@@ -99,8 +123,11 @@ impl<'a> Lexer<'a> {
             end = command.end;
             match command.command {
                 Command::FunctionCall(name) => {
-                    if name == "end" {
+                    if name == "end" && self.end_stack.len() == stack_len {
+                        self.end_stack.pop();
                         break;
+                    } else if name != "end" {
+                        commands.push(command);
                     }
                 }
                 _ => commands.push(command),

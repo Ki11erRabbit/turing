@@ -1,5 +1,5 @@
-"fizz\n" >
-"buzz\n" >
+"fizz" >
+"buzz" >
 "\n"
 20
 1

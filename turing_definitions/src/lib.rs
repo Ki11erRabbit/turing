@@ -17,6 +17,9 @@ pub trait Tape<T>: std::fmt::Debug {
     fn modulo(&mut self, index: usize, direction: Direction, offset: Option<usize>);
     fn grow(&mut self);
     fn in_bounds(&self, index: usize) -> bool;
+    fn increment(&mut self, index: usize);
+    fn decrement(&mut self, index: usize);
+    
 }
 
 pub trait Number: Copy + Clone + PartialEq + PartialOrd + std::ops::Add<Output = Self> + std::ops::Sub<Output = Self> + std::ops::Mul<Output = Self> + std::ops::Div<Output = Self> + std::ops::Rem<Output = Self> + Default + std::fmt::Debug + std::fmt::Display {
@@ -208,5 +211,13 @@ impl<T: Number> Tape<T> for Vec<T> {
 
     fn in_bounds(&self, index: usize) -> bool {
         index < self.len()
+    }
+
+    fn increment(&mut self, index: usize) {
+        self[index] = self[index] + T::from(1);
+    }
+
+    fn decrement(&mut self, index: usize) {
+        self[index] = self[index] - T::from(1);
     }
 }
