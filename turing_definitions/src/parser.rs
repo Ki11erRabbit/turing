@@ -280,25 +280,36 @@ impl<'a> Iterator for Lexer<'a> {
                                 start,
                                 end,
                             }
-                        } else if let Some((_, _)) = self.char_indices.peek() {
-                            let mut acc = String::new();
-                            while let Some((i, c)) = self.char_indices.peek() {
-                                let i = *i;
-                                let c = *c;
-                                if c == '>' {
-                                    self.char_indices.next();
-                                    end = i + 1;
-                                    break;
-                                } else {
-                                    acc.push(c);
-                                    self.char_indices.next();
-                                    end = i + 1;
+                        } else if let Some((_, c)) = self.char_indices.peek() {
+                            let c = *c;
+                            if c.is_numeric() {
+                                let mut acc = String::new();
+                                while let Some((i, c)) = self.char_indices.peek() {
+                                    let i = *i;
+                                    let c = *c;
+                                    if c == '>' {
+                                        self.char_indices.next();
+                                        end = i + 1;
+                                        break;
+                                    } else if c.is_numeric() {
+                                        acc.push(c);
+                                        self.char_indices.next();
+                                        end = i + 1;
+                                    } else {
+                                        break;
+                                    }
                                 }
-                            }
-                            SpannedCommand {
-                                command: Command::RightAdd(Some(acc.parse().unwrap())),
-                                start,
-                                end,
+                                SpannedCommand {
+                                    command: Command::RightAdd(Some(acc.parse().unwrap())),
+                                    start,
+                                    end,
+                                }
+                            } else {
+                                SpannedCommand {
+                                    command: Command::Increment,
+                                    start,
+                                    end,
+                                }
                             }
                         } else {
                             SpannedCommand {

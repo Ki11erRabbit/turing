@@ -1,0 +1,20 @@
+[9]
+
+fun collatz 
+    +> > 2 <% < 
+    if 
+        > 3 <3* +
+    else 
+        <2/
+    end
+    +5> 
+    while - > + < end
+    > -
+    if 
+        <6)
+        > while - end.
+        collatz
+    end
+end
+collatz
+.
