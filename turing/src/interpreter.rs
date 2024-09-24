@@ -6,7 +6,7 @@ use turing_definitions::{ast::{Command, SpannedCommand}, Direction, Number, Tape
 use std::io::Write;
 
 fn check_for_ctrl_c() {
-    if poll(Duration::from_millis(5)).unwrap() {
+    if poll(Duration::from_millis(1)).unwrap() {
         match read().unwrap() {
             Event::Key(event) => {
                 if event.code == KeyCode::Char('c') && event.modifiers == KeyModifiers::CONTROL {
