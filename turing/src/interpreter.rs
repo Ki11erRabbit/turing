@@ -270,14 +270,42 @@ impl<'a, T: Number> Interpreter<'a, T> {
 }
 
 
-impl<'a> Interpreter<'a, i64> {
-    pub fn new() -> Self {
+impl<'a, T:Number + 'static> Interpreter<'a, T> {
+    pub fn new_vec_tape() -> Interpreter<'a, T> {
         Self {
-            tape: Rc::new(RefCell::new(vec![0])),
+            tape: Rc::new(RefCell::new(vec![T::default()])),
             tape_index: 0,
             command_index: 0,
             functions: HashMap::new(),
             functions_list: Vec::new(),
+        }
+    }
+
+    pub fn new_with_tape(tape: Rc<RefCell<dyn Tape<T>>>) -> Interpreter<'a, T> {
+        Self {
+            tape,
+            tape_index: 0,
+            command_index: 0,
+            functions: HashMap::new(),
+            functions_list: Vec::new(),
+        }
+    }
+
+    pub fn load_functions(self, functions_map: HashMap<&'a str, usize>, functions_list: Vec<&'a Vec<SpannedCommand<'a>>>) -> Interpreter<'a, T> {
+        let Self {
+            tape,
+            tape_index,
+            command_index,
+            functions: _,
+            functions_list: _,
+        } = self;
+
+        Self {
+            tape,
+            tape_index,
+            command_index,
+            functions: functions_map,
+            functions_list,
         }
     }
 }

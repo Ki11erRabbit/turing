@@ -105,7 +105,7 @@ fn main() {
 
     //enable_raw_mode().unwrap();
     
-    let mut interpreter = Interpreter::new();
+    let mut interpreter = Interpreter::new_vec_tape();
     interpreter.interpret_commands(&commands);
 
     shutdown();
