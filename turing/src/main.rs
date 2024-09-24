@@ -135,8 +135,8 @@ Commands:
   - -: Decrement the value of the current cell
 Arithmetic:
 Uses +, -, *, /, %
-  - <_: B _ A = B <_ A
-  - _>: A _ B = A _> B
+  - <_: A _ B = A <_ B
+  - _>: B _ A = A _> B
   - A number can be included between the bracket and the operator to do the operation that many cells away
 Control Flow:
   - if: If the current cell is not 0, execute the code until else or end, otherwise skip to else or end
