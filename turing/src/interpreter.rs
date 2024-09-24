@@ -44,13 +44,13 @@ pub struct Interpreter<'a, T: Number> {
 
 impl<'a, T: Number> Interpreter<'a, T> {
     fn interpret_command(&mut self, command: &'a SpannedCommand, interpreter_ext: &InterpreterExt<'a, T>) {
-        println!("{:?}\r", self.tape.borrow());
-        println!("{:?}\r", command.command);
         match &command.command {
             Command::AddInteger(i) => {
                 let mut tape = self.tape.borrow_mut();
-                tape.grow();
                 self.tape_index += 1;
+                while !tape.in_bounds(self.tape_index) {
+                    tape.grow();
+                }
                 tape.set(self.tape_index, T::from(*i));
             }
             Command::AddString(s) => {
@@ -151,7 +151,6 @@ impl<'a, T: Number> Interpreter<'a, T> {
                     while self.command_index < if_commands.len() {
                         check_for_ctrl_c();
                         self.interpret_command(&if_commands[self.command_index], interpreter_ext);
-                        self.command_index += 1;
                     }
                     self.command_index = command_index;
                 } else if let Some(else_commands) = else_commands {
@@ -161,7 +160,6 @@ impl<'a, T: Number> Interpreter<'a, T> {
                     while self.command_index < else_commands.len() {
                         check_for_ctrl_c();
                         self.interpret_command(&else_commands[self.command_index], interpreter_ext);
-                        self.command_index += 1;
                     }
                     self.command_index = command_index;
                 }

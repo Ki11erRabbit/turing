@@ -1,16 +1,26 @@
-[9]
-0 1 # position 2
+[9] +> > 2 <% 
+[0] 1
 loop 
-    <+ # add to position 1
-    < < # move to position 0
-    - 
     if 
-        > # move to position 1
-        +> # add to position 2
-        < < # move to position 0
-        -
-        > > # move to position 2
+        <+
+        < < <
+        - 
+
+        if 
+            > >
+            +> 
+            < < <
+            -
+        end
+        if 
+            > > >
+        end
     end
 end
-> > 
+>
+if
+    >
+else
+    > >
+end
 .

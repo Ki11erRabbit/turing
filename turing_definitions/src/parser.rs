@@ -25,7 +25,7 @@ impl<'a> Lexer<'a> {
         let mut commands = Vec::new();
         let mut else_commands = None;
         let mut end = 0;
-        while let Some(command) = self.next() {
+        'outer: while let Some(command) = self.next() {
             end = command.end;
             match command.command {
                 Command::FunctionCall(name) => {
@@ -37,7 +37,8 @@ impl<'a> Lexer<'a> {
                                 Command::FunctionCall(name) => {
                                     if name == "end" && self.end_stack.len() == stack_len {
                                         self.end_stack.pop();
-                                        break;
+                                        else_commands = Some(else_commands_vec);
+                                        break 'outer;
                                     } else if name != "end" {
                                         else_commands_vec.push(command);
                                     }
